@@ -1,6 +1,6 @@
 FROM hseeberger/scala-sbt:17.0.2_1.6.2_2.13.8
 
-RUN git clone https://github.com/arvkonstantin/b-gen-report
+COPY . b-gen-report
 
 WORKDIR b-gen-report
 
