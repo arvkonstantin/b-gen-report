@@ -8,4 +8,4 @@ RUN sbt assembly
 
 EXPOSE 8080/tcp
 
-ENTRYPOINT java -jar target/scala-2.13/b-mb-assembly-*.jar
+ENTRYPOINT java -jar target/scala-2.13/b-gen-report-assembly-*.jar
