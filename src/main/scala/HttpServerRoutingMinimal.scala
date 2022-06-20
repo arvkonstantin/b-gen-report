@@ -10,10 +10,11 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.FileIO
 
+import java.io.File
 import java.nio.file.Paths
-import java.util.UUID
 import scala.concurrent.ExecutionContextExecutor
 import scala.sys.process._
+import scala.util.parsing.json.JSONObject
 import scala.util.{Failure, Success}
 
 object HttpServerRoutingMinimal {
@@ -26,6 +27,10 @@ object HttpServerRoutingMinimal {
 
     val logger = Logger("server")
 
+    println(s"relaxed kek/main.pug pdf.pdf --build-once --no-sandbox --locals \"${ //noinspection ScalaDeprecation
+      JSONObject(Foo.getResultMap(Foo.testFoo)).toString().replace(" ", "")
+    }\"")
+
     val route =
       pathPrefix("api") {
         path("upload") {
@@ -33,21 +38,33 @@ object HttpServerRoutingMinimal {
             case (info, value) =>
               onComplete {
                 value.runWith {
-                  val path = UUID.randomUUID() + "/zip"
-                  FileIO.toPath(Paths.get(path))
-                }.map { path =>
-                  s"unzip $path".!!
-
+                  FileIO.toPath(Paths.get(info.fileName))
+                }.map { _ =>
+                  s"unzip ${Paths.get(info.fileName)} -d ${info.fileName.replace(".zip", "")}".!!
+                  //noinspection LongLine
+                  println(s"relaxed ${info.fileName.replace(".zip", "")}/main.pug pdf.pdf --build-once --no-sandbox --locals '${ //noinspection ScalaDeprecation
+                    JSONObject(Foo.getResultMap(Foo.testFoo)).toString().replace(" ", "")
+                  }'".!!)
+                  info.fileName
                 }
               } {
                 case Failure(exception) =>
                   logger.error("Upload error", exception)
-                  complete(StatusCodes.InternalServerError, "ERROR " + exception.getMessage)
+                  exception.printStackTrace()
+                  complete(StatusCodes.InternalServerError, s"ERROR ${exception.getMessage}")
                 case Success(value) =>
-                  complete(value)
+                  complete(HttpEntity.fromFile(
+                    MediaTypes.`application/pdf`, new File(s"/root/b-gen-report/pdf.pdf")
+                  ))
               }
           }
-        }
+        } ~
+          path("fieldsInfo") {
+            complete(StatusCodes.OK, Foo.fieldsForReport.map {
+              case (name, desc) =>
+                s"$name -> $desc"
+            }.mkString(", "))
+          }
       }
 
     Http().newServerAt("0.0.0.0", 8080).bind(route)
