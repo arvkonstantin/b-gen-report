@@ -1,9 +1,11 @@
 import java.lang.reflect.Method
-import scala.util.Try
 import scala.util.parsing.json.JSONObject
+import scala.util.{Random, Try}
 
 class Foo {
   var bar: String = "bar"
+
+  val notif_num = Random.nextInt(4532)
 
   def count = 5
 
@@ -13,7 +15,8 @@ class Foo {
 object Foo {
   val testFoo = new Foo
 
-  val fieldsForReport: Seq[(String, String)] = Seq("getBar" -> "поле Bar", "count" -> "метод count")
+  val fieldsForReport: Seq[(String, String)] =
+    Seq("getBar" -> "поле Bar", "count" -> "метод count", "notif_num" -> "Номер уведомления")
 
 
   def getResultMap(foo: Foo): Map[String, String] = {
